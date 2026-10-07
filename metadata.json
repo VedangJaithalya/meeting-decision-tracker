@@ -1,0 +1,6 @@
+{
+  "name": "Meeting Decision Tracker",
+  "description": "Extract decisions, actions, and open questions from Google Docs meeting notes, review them with source citations, and sync to Google Sheets and Google Calendar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
