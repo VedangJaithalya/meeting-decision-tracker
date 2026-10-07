@@ -13,7 +13,7 @@ import {
   FileCode,
   Zap,
 } from 'lucide-react';
-import { GoogleDriveFile } from '../types';
+import { GoogleDriveFile } from '../types/index';
 import { SAMPLE_DOC_PRESETS, SampleDocPreset } from '../services/sampleData';
 
 interface DocSelectorProps {

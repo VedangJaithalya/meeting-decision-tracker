@@ -1,4 +1,4 @@
-import { GoogleDriveFile, ActionItem } from '../types';
+import { GoogleDriveFile, ActionItem } from '../types/index';
 
 /**
  * Parses raw text out of a Google Docs API Document resource.

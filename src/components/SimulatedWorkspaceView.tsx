@@ -8,7 +8,7 @@ import {
   Sparkles,
   Sheet,
 } from 'lucide-react';
-import { ActionItem } from '../types';
+import { ActionItem } from '../types/index';
 
 interface SimulatedWorkspaceViewProps {
   syncedSheetRows: Array<{

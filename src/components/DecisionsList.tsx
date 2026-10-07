@@ -7,7 +7,7 @@ import {
   Quote,
   ShieldCheck,
 } from 'lucide-react';
-import { DecisionItem } from '../types';
+import { DecisionItem } from '../types/index';
 
 interface DecisionsListProps {
   decisions: DecisionItem[];

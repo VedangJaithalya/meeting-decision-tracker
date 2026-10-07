@@ -1,4 +1,4 @@
-import { ExtractedMeetingData } from '../types';
+import { ExtractedMeetingData } from '../types/index';
 
 export interface SampleDocPreset {
   id: string;

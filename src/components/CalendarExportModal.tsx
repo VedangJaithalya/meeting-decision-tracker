@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Calendar,
   X,
@@ -9,7 +9,7 @@ import {
   RefreshCw,
   User,
 } from 'lucide-react';
-import { ActionItem } from '../types';
+import { ActionItem } from '../types/index';
 
 interface CalendarExportModalProps {
   isOpen: boolean;
@@ -30,11 +30,26 @@ export const CalendarExportModal: React.FC<CalendarExportModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Strict check: No items with Missing dates allowed!
-  const invalidItems = selectedActions.filter(
+  const [localSubmitting, setLocalSubmitting] = useState(false);
+
+  // Strict check: No items with Missing dates or empty tasks allowed!
+  const missingDateItems = selectedActions.filter(
     (i) => !i.dueDate || i.dueDate === 'Missing' || i.dueDate.trim() === ''
   );
-  const isValid = selectedActions.length > 0 && invalidItems.length === 0;
+  const emptyTaskItems = selectedActions.filter(
+    (i) => !i.task || i.task.trim() === ''
+  );
+  const isValid = selectedActions.length > 0 && missingDateItems.length === 0 && emptyTaskItems.length === 0;
+
+  const handleConfirm = async () => {
+    if (localSubmitting || isScheduling || !isValid) return;
+    setLocalSubmitting(true);
+    try {
+      await onConfirmSchedule();
+    } finally {
+      setLocalSubmitting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -57,7 +72,7 @@ export const CalendarExportModal: React.FC<CalendarExportModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            disabled={isScheduling}
+            disabled={isScheduling || localSubmitting}
             className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -67,7 +82,7 @@ export const CalendarExportModal: React.FC<CalendarExportModalProps> = ({
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
           {/* Strict Date Validation Guard */}
-          {invalidItems.length > 0 ? (
+          {missingDateItems.length > 0 ? (
             <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-start space-x-3">
               <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
               <div>
@@ -75,16 +90,28 @@ export const CalendarExportModal: React.FC<CalendarExportModalProps> = ({
                   Cannot Schedule: Missing Dates Detected
                 </span>
                 <p className="text-xs text-red-800 mt-1">
-                  The following {invalidItems.length} action item(s) have no confirmed due date.
+                  The following {missingDateItems.length} action item(s) have no confirmed due date.
                   Per policy, a Calendar event will <strong>never</strong> be created for an action without a confirmed date.
                 </p>
                 <ul className="list-disc list-inside mt-2 space-y-1 font-semibold text-red-900">
-                  {invalidItems.map((item) => (
-                    <li key={item.id}>{item.task}</li>
+                  {missingDateItems.map((item) => (
+                    <li key={item.id}>{item.task || '(Unnamed Task)'}</li>
                   ))}
                 </ul>
                 <p className="text-xs text-red-700 mt-2">
                   Please close this dialog and edit the due date in the review table first.
+                </p>
+              </div>
+            </div>
+          ) : emptyTaskItems.length > 0 ? (
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+              <div>
+                <span className="font-bold text-sm text-amber-950">
+                  Task Description Required
+                </span>
+                <p className="text-xs text-amber-800 mt-1">
+                  One or more selected items have an empty description. Please provide a task description before scheduling.
                 </p>
               </div>
             </div>
@@ -118,7 +145,7 @@ export const CalendarExportModal: React.FC<CalendarExportModalProps> = ({
                         All-Day Deadline Event
                       </span>
                       <h4 className="font-bold text-sm text-slate-900 mt-1.5">
-                        [Action] {item.task}
+                        [Action] {item.task || '(Unnamed Task)'}
                       </h4>
                     </div>
                     <div className="flex items-center space-x-1.5 text-xs font-semibold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
@@ -154,7 +181,7 @@ export const CalendarExportModal: React.FC<CalendarExportModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            disabled={isScheduling}
+            disabled={isScheduling || localSubmitting}
             className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors"
           >
             Cancel
@@ -162,17 +189,17 @@ export const CalendarExportModal: React.FC<CalendarExportModalProps> = ({
 
           <button
             type="button"
-            onClick={onConfirmSchedule}
-            disabled={isScheduling || !isValid}
+            onClick={handleConfirm}
+            disabled={isScheduling || localSubmitting || !isValid}
             className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all disabled:opacity-50"
           >
-            {isScheduling ? (
+            {isScheduling || localSubmitting ? (
               <RefreshCw className="w-4 h-4 animate-spin text-white" />
             ) : (
               <Calendar className="w-4 h-4" />
             )}
             <span>
-              {isScheduling
+              {isScheduling || localSubmitting
                 ? 'Creating Events...'
                 : `Confirm & Create ${selectedActions.length} Events`}
             </span>

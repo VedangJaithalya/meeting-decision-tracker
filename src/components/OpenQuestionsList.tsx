@@ -8,7 +8,7 @@ import {
   AlertCircle,
   MessageSquare,
 } from 'lucide-react';
-import { OpenQuestionItem } from '../types';
+import { OpenQuestionItem } from '../types/index';
 
 interface OpenQuestionsListProps {
   openQuestions: OpenQuestionItem[];

@@ -9,7 +9,7 @@ import {
   FileSpreadsheet,
   RefreshCw,
 } from 'lucide-react';
-import { ActionItem, GoogleDriveFile } from '../types';
+import { ActionItem, GoogleDriveFile } from '../types/index';
 
 interface SheetExportModalProps {
   isOpen: boolean;
@@ -42,6 +42,7 @@ export const SheetExportModal: React.FC<SheetExportModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const [localSubmitting, setLocalSubmitting] = useState(false);
   const [sheetChoice, setSheetChoice] = useState<'new' | 'existing'>('new');
   const [newTitle, setNewTitle] = useState(`Meeting Action Items - ${meetingName || 'Notes'}`);
   const [selectedSheetId, setSelectedSheetId] = useState<string>(
@@ -50,12 +51,18 @@ export const SheetExportModal: React.FC<SheetExportModalProps> = ({
   const [customSheetUrl, setCustomSheetUrl] = useState('');
 
   const handleConfirm = async () => {
-    const targetId = customSheetUrl.trim() || selectedSheetId;
-    await onConfirmExport({
-      mode: sheetChoice,
-      newSheetTitle: newTitle.trim(),
-      existingSheetId: targetId,
-    });
+    if (localSubmitting || isExporting) return;
+    setLocalSubmitting(true);
+    try {
+      const targetId = customSheetUrl.trim() || selectedSheetId;
+      await onConfirmExport({
+        mode: sheetChoice,
+        newSheetTitle: newTitle.trim(),
+        existingSheetId: targetId,
+      });
+    } finally {
+      setLocalSubmitting(false);
+    }
   };
 
   return (
@@ -268,16 +275,16 @@ export const SheetExportModal: React.FC<SheetExportModalProps> = ({
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={isExporting || actionsToExport.length === 0}
+            disabled={isExporting || localSubmitting || actionsToExport.length === 0}
             className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-200 transition-all disabled:opacity-50"
           >
-            {isExporting ? (
+            {isExporting || localSubmitting ? (
               <RefreshCw className="w-4 h-4 animate-spin text-white" />
             ) : (
               <TableProperties className="w-4 h-4" />
             )}
             <span>
-              {isExporting
+              {isExporting || localSubmitting
                 ? 'Exporting Rows to Sheet...'
                 : `Confirm & Export ${actionsToExport.length} Actions`}
             </span>

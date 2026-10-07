@@ -28,7 +28,7 @@ import {
   DecisionItem,
   OpenQuestionItem,
   GoogleDriveFile,
-} from './types';
+} from './types/index';
 import { initAuth, googleSignIn, logout, getAccessToken } from './services/firebase';
 import {
   listGoogleDocs,
@@ -448,6 +448,7 @@ export default function App() {
     newSheetTitle?: string;
     existingSheetId?: string;
   }) => {
+    if (isExportingSheet) return;
     if (!extractedData) return;
     const actionsToSync = extractedData.actionItems.filter(
       (item) => item.approved && !item.syncedToSheet
@@ -555,6 +556,7 @@ export default function App() {
 
   // Confirm Google Calendar Scheduling (Live or Sample)
   const handleConfirmCalendarSchedule = async () => {
+    if (isSchedulingCalendar) return;
     if (!extractedData) return;
     const actionsToSchedule = extractedData.actionItems.filter((i) =>
       selectedCalendarIds.includes(i.id)
